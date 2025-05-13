@@ -65,10 +65,62 @@ class DetailStoryPage {
     }
   }
 
-  populateStoryDetail(story) {
+  async populateStoryDetail(story) {
     this._story = story;
+
+    // Mencoba mendapatkan nama tempat jika ada koordinat
+    if (story.lat && story.lon) {
+      try {
+        story.placeName = await this.getPlaceNameByCoordinate(
+          story.lat,
+          story.lon
+        );
+      } catch (error) {
+        console.error("Error getting place name:", error);
+        story.placeName = `${story.lat}, ${story.lon}`;
+      }
+    }
+
     const storyDetailElement = document.getElementById("storyDetail");
     storyDetailElement.innerHTML = this._createStoryDetailTemplate(story);
+  }
+
+  async displayStoryMap(story) {
+    // Pastikan elemen map sudah ada di DOM
+    // Karena elemen map dibuat dalam populateStoryDetail,
+    // kita perlu sedikit delay untuk memastikan DOM sudah terupdate
+    setTimeout(async () => {
+      const mapElement = document.getElementById("storyMap");
+      if (!mapElement) {
+        console.error("Map container not found");
+        return;
+      }
+
+      this.showMapLoading();
+      try {
+        await this.initialMap();
+
+        if (story.lat && story.lon) {
+          const coordinate = [story.lat, story.lon];
+          const markerOptions = { alt: story.name };
+          const popupOptions = {
+            content: this._createMapPopupContent(story),
+          };
+
+          this.addMapMarker(coordinate, markerOptions, popupOptions);
+          this.changeMapCamera(coordinate, 15);
+        }
+      } catch (error) {
+        console.error("displayStoryMap: error:", error);
+        this.showMapError(error.message);
+      } finally {
+        this.hideMapLoading();
+      }
+    }, 100); // Delay kecil untuk memastikan DOM telah terupdate
+  }
+
+  _createMapPopupContent(story) {
+    return story.name;
   }
 
   showLoading() {

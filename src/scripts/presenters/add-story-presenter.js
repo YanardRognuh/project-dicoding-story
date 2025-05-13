@@ -14,7 +14,7 @@ export default class AddStoryPresenter {
     this.#longitude = null;
   }
 
-  async initCamera() {
+  async prepareCamera() {
     try {
       await this.#view.setupCamera();
     } catch (error) {
@@ -22,22 +22,13 @@ export default class AddStoryPresenter {
     }
   }
 
-  async initMap() {
+  async prepareMap() {
     try {
-      await this.#view.initializeMap();
+      // Menunjukkan indikator loading jika diperlukan
+      const mapCenter = await this.#view.initializeMap();
 
-      // Get the center coordinates of the map
-      const center = await this.#view.getMapCenter();
-
-      // Set initial coordinates
-      this.#latitude = center.latitude;
-      this.#longitude = center.longitude;
-
-      // Update UI with coordinates
-      this.#view.updateCoordinateDisplay(this.#latitude, this.#longitude);
-
-      // Add a marker
-      await this.#view.addMarkerAtCoordinates(this.#latitude, this.#longitude);
+      // Set koordinat awal
+      this.setLocationCoordinates(mapCenter.latitude, mapCenter.longitude);
     } catch (error) {
       this.#view.showError(error.message);
     }

@@ -1,4 +1,4 @@
-// presenters/story-presenter.js
+// presenters/detail-story-presenter.js
 export default class StoryPresenter {
   #storyId;
   #view;
@@ -21,52 +21,18 @@ export default class StoryPresenter {
         return;
       }
 
-      // Enrich story data with place name if coordinates exist
-      if (response.story.lat && response.story.lon) {
-        try {
-          const placeName = await this.#view.getPlaceNameByCoordinate(
-            response.story.lat,
-            response.story.lon
-          );
-          response.story.placeName = placeName;
-        } catch (error) {
-          console.error("Error getting place name:", error);
-          response.story.placeName = `${response.story.lat}, ${response.story.lon}`;
-        }
-      }
+      // Meneruskan data story ke view untuk ditampilkan
+      await this.#view.populateStoryDetail(response.story);
 
-      this.#view.populateStoryDetail(response.story);
-
-      // Initialize map if story has location data
+      // Memberi tahu view bahwa perlu menampilkan peta jika ada data lokasi
       if (response.story.lat && response.story.lon) {
-        await this.showStoryMap(response.story);
+        this.#view.displayStoryMap(response.story);
       }
     } catch (error) {
       console.error("showStoryDetail: error:", error);
       this.#view.showError(error.message);
     } finally {
       this.#view.hideLoading();
-    }
-  }
-
-  async showStoryMap(story) {
-    this.#view.showMapLoading();
-    try {
-      await this.#view.initialMap();
-
-      if (story.lat && story.lon) {
-        const coordinate = [story.lat, story.lon];
-        const markerOptions = { alt: story.name };
-        const popupOptions = { content: story.name };
-
-        this.#view.addMapMarker(coordinate, markerOptions, popupOptions);
-        this.#view.changeMapCamera(coordinate, 15);
-      }
-    } catch (error) {
-      console.error("showStoryMap: error:", error);
-      this.#view.showMapError(error.message);
-    } finally {
-      this.#view.hideMapLoading();
     }
   }
 }

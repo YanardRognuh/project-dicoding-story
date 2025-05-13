@@ -103,6 +103,7 @@ class AddStoryPage {
     const locationInfo = document.getElementById("locationInfo");
     const mapContainer = document.getElementById("mapContainer");
     const cameraContainer = document.getElementById("cameraContainer");
+    const captureButton = document.getElementById("captureButton");
 
     // Handle photo from file input
     photoInput.addEventListener("change", (event) => {
@@ -113,15 +114,25 @@ class AddStoryPage {
 
     // Setup camera toggling
     openCameraButton.addEventListener("click", async () => {
-      cameraContainer.style.display = this.#isCameraOpen ? "none" : "block";
       this.#isCameraOpen = !this.#isCameraOpen;
+      cameraContainer.style.display = this.#isCameraOpen ? "block" : "none";
 
       if (this.#isCameraOpen) {
         openCameraButton.textContent = "Tutup Kamera";
-        await this.#presenter.initCamera();
+        await this.#presenter.prepareCamera();
       } else {
         openCameraButton.textContent = "Buka Kamera";
         this.stopCamera();
+      }
+    });
+
+    // Setup capture button
+    captureButton.addEventListener("click", async () => {
+      if (this.#camera) {
+        const imageBlob = await this.#camera.takePicture();
+        if (imageBlob) {
+          this.#presenter.setPhoto(imageBlob);
+        }
       }
     });
 
@@ -130,11 +141,29 @@ class AddStoryPage {
       if (event.target.checked) {
         locationInfo.style.display = "block";
         mapContainer.style.display = "block";
-        await this.#presenter.initMap();
+        await this.#presenter.prepareMap();
       } else {
         locationInfo.style.display = "none";
         mapContainer.style.display = "none";
         this.#presenter.setLocationCoordinates(null, null);
+      }
+    });
+
+    // Setup map click event
+    document.addEventListener("mapInitialized", () => {
+      if (this.#map && this.#locationMarker) {
+        // Dibuat hanya untuk didaftarkan setelah map terinisialisasi
+        this.#map.addMapEventListener("click", (event) => {
+          const { lat, lng } = event.latlng;
+          this.#locationMarker.setLatLng([lat, lng]);
+          this.#presenter.setLocationCoordinates(lat, lng);
+        });
+
+        // Setup marker drag event
+        this.#locationMarker.on("dragend", (event) => {
+          const position = event.target.getLatLng();
+          this.#presenter.setLocationCoordinates(position.lat, position.lng);
+        });
       }
     });
 
@@ -163,15 +192,6 @@ class AddStoryPage {
         video: cameraVideo,
         cameraSelect: cameraSelect,
         canvas: cameraCanvas,
-      });
-
-      // Add capture button functionality
-      const captureButton = document.getElementById("captureButton");
-      captureButton.addEventListener("click", async () => {
-        const imageBlob = await this.#camera.takePicture();
-        if (imageBlob) {
-          this.#presenter.setPhoto(imageBlob);
-        }
       });
 
       // Launch camera
@@ -209,7 +229,20 @@ class AddStoryPage {
         locate: true,
       });
 
-      return this.#map;
+      // Get map center
+      const center = await this.getMapCenter();
+
+      // Add a draggable marker at the coordinates
+      const markerCoordinates = [center.latitude, center.longitude];
+      this.#locationMarker = this.#map.addMarker(markerCoordinates, {
+        draggable: true,
+      });
+
+      // Dispatch event that map is initialized
+      const mapInitEvent = new Event("mapInitialized");
+      document.dispatchEvent(mapInitEvent);
+
+      return center;
     } catch (error) {
       throw error;
     }
@@ -222,31 +255,6 @@ class AddStoryPage {
 
     const center = this.#map.getCenter ? this.#map.getCenter() : null;
     return center || { latitude: -6.2, longitude: 106.816666 };
-  }
-
-  async addMarkerAtCoordinates(lat, lng) {
-    if (!this.#map) return null;
-
-    // Add a draggable marker at the coordinates
-    const markerCoordinates = [lat, lng];
-    this.#locationMarker = this.#map.addMarker(markerCoordinates, {
-      draggable: true,
-    });
-
-    // Update coordinates when marker is moved
-    this.#locationMarker.on("dragend", (event) => {
-      const position = event.target.getLatLng();
-      this.#presenter.setLocationCoordinates(position.lat, position.lng);
-    });
-
-    // Allow clicking on the map to move the marker
-    this.#map.addMapEventListener("click", (event) => {
-      const { lat, lng } = event.latlng;
-      this.#locationMarker.setLatLng([lat, lng]);
-      this.#presenter.setLocationCoordinates(lat, lng);
-    });
-
-    return this.#locationMarker;
   }
 
   updateCoordinateDisplay(lat, lng) {

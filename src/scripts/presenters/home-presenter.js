@@ -30,39 +30,12 @@ export default class HomePresenter {
       const mappedStories = await storiesMapper(stories);
       this.#view.showStories(mappedStories);
 
-      await this.showStoriesOnMap(mappedStories);
+      // Memanggil method di view untuk menampilkan stories di peta
+      this.#view.showStoriesOnMap(mappedStories);
     } catch (error) {
       this.#view.showError(error.message);
     } finally {
       this.#view.hideLoading();
-    }
-  }
-
-  async showStoriesOnMap(stories) {
-    try {
-      await this.#view.initializeMap();
-
-      stories.forEach((story) => {
-        if (story.lat && story.lon) {
-          const coordinate = [story.lat, story.lon];
-          const markerOptions = { alt: story.name };
-          const popupOptions = {
-            content: `
-              <div class="map-popup">
-                <h3>${story.name}</h3>
-                <a href="#/story/${story.id}">Lihat Detail</a>
-                
-              </div>
-            `,
-          };
-
-          this.#view.addMapMarker(coordinate, markerOptions, popupOptions);
-        }
-      });
-    } catch (error) {
-      this.#view.showMapError(error.message);
-    } finally {
-      this.#view.hideMapLoading();
     }
   }
 }

@@ -48,6 +48,70 @@ export default class LoginPage {
     this.#presenter.initListeners();
   }
 
+  // View methods untuk inisialisasi event handlers
+  initFormValidation() {
+    const emailInput = this.getElement("#email");
+    const passwordInput = this.getElement("#password");
+
+    // Real-time validation menggunakan event input
+    emailInput.addEventListener("input", () => {
+      const email = emailInput.value;
+      const validation = this.#presenter.validateEmail(email);
+
+      if (!validation.isValid) {
+        this.showFieldError("email", validation.message);
+      } else {
+        this.clearFieldError("email");
+      }
+    });
+
+    passwordInput.addEventListener("input", () => {
+      const password = passwordInput.value;
+      const validation = this.#presenter.validatePassword(password);
+
+      if (!validation.isValid) {
+        this.showFieldError("password", validation.message);
+      } else {
+        this.clearFieldError("password");
+      }
+    });
+
+    // Blur events untuk accessibility
+    emailInput.addEventListener("blur", () => {
+      const email = emailInput.value;
+      const validation = this.#presenter.validateEmail(email);
+
+      if (!validation.isValid) {
+        this.showFieldError("email", validation.message);
+      }
+    });
+
+    passwordInput.addEventListener("blur", () => {
+      const password = passwordInput.value;
+      const validation = this.#presenter.validatePassword(password);
+
+      if (!validation.isValid) {
+        this.showFieldError("password", validation.message);
+      }
+    });
+  }
+
+  initFormSubmission(loginHandler) {
+    const form = this.getElement("#loginForm");
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      this.getElement("#errorContainer").innerHTML = "";
+
+      // Ambil data form
+      const formData = this.getFormData();
+
+      // Serahkan data ke handler di presenter
+      await loginHandler(formData);
+    });
+  }
+
+  // Utility methods
   getElement(selector) {
     return document.querySelector(selector);
   }
@@ -59,6 +123,7 @@ export default class LoginPage {
     };
   }
 
+  // UI update methods
   showError(message, selector = "#errorContainer") {
     const container = this.getElement(selector);
     container.innerHTML = `

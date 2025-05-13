@@ -54,6 +54,91 @@ export default class RegisterPage {
     this.#presenter.initListeners();
   }
 
+  // View methods untuk inisialisasi event handlers
+  initFormValidation() {
+    const nameInput = this.getElement("#name");
+    const emailInput = this.getElement("#email");
+    const passwordInput = this.getElement("#password");
+
+    // Real-time validation menggunakan event input
+    nameInput.addEventListener("input", () => {
+      const name = nameInput.value;
+      const validation = this.#presenter.validateName(name);
+
+      if (!validation.isValid) {
+        this.showFieldError("name", validation.message);
+      } else {
+        this.clearFieldError("name");
+      }
+    });
+
+    emailInput.addEventListener("input", () => {
+      const email = emailInput.value;
+      const validation = this.#presenter.validateEmail(email);
+
+      if (!validation.isValid) {
+        this.showFieldError("email", validation.message);
+      } else {
+        this.clearFieldError("email");
+      }
+    });
+
+    passwordInput.addEventListener("input", () => {
+      const password = passwordInput.value;
+      const validation = this.#presenter.validatePassword(password);
+
+      if (!validation.isValid) {
+        this.showFieldError("password", validation.message);
+      } else {
+        this.clearFieldError("password");
+      }
+    });
+
+    // Blur events untuk accessibility
+    nameInput.addEventListener("blur", () => {
+      const name = nameInput.value;
+      const validation = this.#presenter.validateName(name);
+
+      if (!validation.isValid) {
+        this.showFieldError("name", validation.message);
+      }
+    });
+
+    emailInput.addEventListener("blur", () => {
+      const email = emailInput.value;
+      const validation = this.#presenter.validateEmail(email);
+
+      if (!validation.isValid) {
+        this.showFieldError("email", validation.message);
+      }
+    });
+
+    passwordInput.addEventListener("blur", () => {
+      const password = passwordInput.value;
+      const validation = this.#presenter.validatePassword(password);
+
+      if (!validation.isValid) {
+        this.showFieldError("password", validation.message);
+      }
+    });
+  }
+
+  initFormSubmission(registerHandler) {
+    const form = this.getElement("#registerForm");
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      this.getElement("#errorContainer").innerHTML = "";
+
+      // Ambil data form
+      const formData = this.getFormData();
+
+      // Serahkan data ke handler di presenter
+      await registerHandler(formData);
+    });
+  }
+
+  // Utility methods
   getElement(selector) {
     return document.querySelector(selector);
   }
@@ -66,6 +151,7 @@ export default class RegisterPage {
     };
   }
 
+  // UI update methods
   showError(message, selector = "#errorContainer") {
     const container = this.getElement(selector);
     container.innerHTML = `

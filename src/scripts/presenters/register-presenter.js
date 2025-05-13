@@ -8,99 +8,87 @@ export default class RegisterPresenter {
   }
 
   initListeners() {
-    const form = this.#view.getElement("#registerForm");
-    const nameInput = this.#view.getElement("#name");
-    const emailInput = this.#view.getElement("#email");
-    const passwordInput = this.#view.getElement("#password");
-
-    // Form submit event
-    form.addEventListener("submit", async (event) => {
-      event.preventDefault();
-      await this.handleRegister();
-    });
-
-    // Real-time validation
-    nameInput.addEventListener("input", () => this.validateName());
-    emailInput.addEventListener("input", () => this.validateEmail());
-    passwordInput.addEventListener("input", () => this.validatePassword());
-
-    // Blur event for accessibility
-    nameInput.addEventListener("blur", () => this.validateName());
-    emailInput.addEventListener("blur", () => this.validateEmail());
-    passwordInput.addEventListener("blur", () => this.validatePassword());
+    // Hanya inisialisasi listener, implementasi ada di view
+    this.#view.initFormValidation();
+    this.#view.initFormSubmission(this.handleRegister.bind(this));
   }
 
-  validateName() {
-    const nameInput = this.#view.getElement("#name");
+  validateName(name) {
+    if (!name) {
+      return { isValid: false, message: "Nama tidak boleh kosong" };
+    }
+    return { isValid: true };
+  }
 
-    if (nameInput.validity.valueMissing) {
-      this.#view.showFieldError("name", "Nama tidak boleh kosong");
+  validateEmail(email) {
+    if (!email) {
+      return { isValid: false, message: "Email tidak boleh kosong" };
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return { isValid: false, message: "Format email tidak valid" };
+    }
+
+    return { isValid: true };
+  }
+
+  validatePassword(password) {
+    if (!password) {
+      return { isValid: false, message: "Password tidak boleh kosong" };
+    }
+
+    if (password.length < 8) {
+      return { isValid: false, message: "Password minimal 8 karakter" };
+    }
+
+    return { isValid: true };
+  }
+
+  async handleRegister(formData) {
+    // Validasi data form
+    const nameValidation = this.validateName(formData.name);
+    const emailValidation = this.validateEmail(formData.email);
+    const passwordValidation = this.validatePassword(formData.password);
+
+    // Jika ada validasi yang tidak valid, tampilkan pesan error
+    if (!nameValidation.isValid) {
+      this.#view.showFieldError("name", nameValidation.message);
       return false;
     }
 
-    this.#view.clearFieldError("name");
-    return true;
-  }
-
-  validateEmail() {
-    const emailInput = this.#view.getElement("#email");
-
-    if (emailInput.validity.valueMissing) {
-      this.#view.showFieldError("email", "Email tidak boleh kosong");
-      return false;
-    } else if (emailInput.validity.typeMismatch) {
-      this.#view.showFieldError("email", "Format email tidak valid");
+    if (!emailValidation.isValid) {
+      this.#view.showFieldError("email", emailValidation.message);
       return false;
     }
 
-    this.#view.clearFieldError("email");
-    return true;
-  }
-
-  validatePassword() {
-    const passwordInput = this.#view.getElement("#password");
-
-    if (passwordInput.validity.valueMissing) {
-      this.#view.showFieldError("password", "Password tidak boleh kosong");
-      return false;
-    } else if (passwordInput.value.length < 8) {
-      this.#view.showFieldError("password", "Password minimal 8 karakter");
+    if (!passwordValidation.isValid) {
+      this.#view.showFieldError("password", passwordValidation.message);
       return false;
     }
 
-    this.#view.clearFieldError("password");
-    return true;
-  }
+    try {
+      this.#view.showLoading();
 
-  async handleRegister() {
-    // Clear previous errors
-    this.#view.getElement("#errorContainer").innerHTML = "";
+      // Panggil model untuk register
+      const response = await this.#model.register(formData);
 
-    // Validate all fields
-    const isNameValid = this.validateName();
-    const isEmailValid = this.validateEmail();
-    const isPasswordValid = this.validatePassword();
-
-    if (isNameValid && isEmailValid && isPasswordValid) {
-      try {
-        this.#view.showLoading();
-
-        const { name, email, password } = this.#view.getFormData();
-        const response = await this.#model.register({ name, email, password });
-
-        if (response.error) {
-          this.#view.showError(response.message);
-        } else {
-          this.#view.showSuccess(
-            'Registrasi berhasil! Silakan <a href="#/login">login</a>.'
-          );
-          this.#view.resetForm();
-        }
-      } catch (error) {
-        this.#view.showError("Terjadi kesalahan. Silakan coba lagi.");
-      } finally {
-        this.#view.hideLoading();
+      if (response.error) {
+        this.#view.showError(response.message);
+        return false;
+      } else {
+        this.#view.showSuccess(
+          'Registrasi berhasil! Silakan <a href="#/login">login</a>.'
+        );
+        this.#view.resetForm();
+        return true;
       }
+    } catch (error) {
+      this.#view.showError("Terjadi kesalahan. Silakan coba lagi.");
+      return false;
+    } finally {
+      this.#view.hideLoading();
     }
   }
 }

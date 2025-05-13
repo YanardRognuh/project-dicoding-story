@@ -8,78 +8,68 @@ export default class LoginPresenter {
   }
 
   initListeners() {
-    const form = this.#view.getElement("#loginForm");
-    const emailInput = this.#view.getElement("#email");
-    const passwordInput = this.#view.getElement("#password");
-
-    // Form submit event
-    form.addEventListener("submit", async (event) => {
-      event.preventDefault();
-      await this.handleLogin();
-    });
-
-    // Real-time validation
-    emailInput.addEventListener("input", () => this.validateEmail());
-    passwordInput.addEventListener("input", () => this.validatePassword());
-
-    // Blur event for accessibility
-    emailInput.addEventListener("blur", () => this.validateEmail());
-    passwordInput.addEventListener("blur", () => this.validatePassword());
+    // Hanya inisialisasi listener, implementasi ada di view
+    this.#view.initFormValidation();
+    this.#view.initFormSubmission(this.handleLogin.bind(this));
   }
 
-  validateEmail() {
-    const emailInput = this.#view.getElement("#email");
+  validateEmail(email) {
+    if (!email) {
+      return { isValid: false, message: "Email tidak boleh kosong" };
+    }
 
-    if (emailInput.validity.valueMissing) {
-      this.#view.showFieldError("email", "Email tidak boleh kosong");
-      return false;
-    } else if (emailInput.validity.typeMismatch) {
-      this.#view.showFieldError("email", "Format email tidak valid");
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return { isValid: false, message: "Format email tidak valid" };
+    }
+
+    return { isValid: true };
+  }
+
+  validatePassword(password) {
+    if (!password) {
+      return { isValid: false, message: "Password tidak boleh kosong" };
+    }
+
+    return { isValid: true };
+  }
+
+  async handleLogin(formData) {
+    // Validasi data form
+    const emailValidation = this.validateEmail(formData.email);
+    const passwordValidation = this.validatePassword(formData.password);
+
+    // Jika ada validasi yang tidak valid, tampilkan pesan error
+    if (!emailValidation.isValid) {
+      this.#view.showFieldError("email", emailValidation.message);
       return false;
     }
 
-    this.#view.clearFieldError("email");
-    return true;
-  }
-
-  validatePassword() {
-    const passwordInput = this.#view.getElement("#password");
-
-    if (passwordInput.validity.valueMissing) {
-      this.#view.showFieldError("password", "Password tidak boleh kosong");
+    if (!passwordValidation.isValid) {
+      this.#view.showFieldError("password", passwordValidation.message);
       return false;
     }
 
-    this.#view.clearFieldError("password");
-    return true;
-  }
+    try {
+      this.#view.showLoading();
 
-  async handleLogin() {
-    // Clear previous errors
-    this.#view.getElement("#errorContainer").innerHTML = "";
+      // Panggil model untuk login
+      const response = await this.#model.login(formData);
 
-    // Validate all fields
-    const isEmailValid = this.validateEmail();
-    const isPasswordValid = this.validatePassword();
-
-    if (isEmailValid && isPasswordValid) {
-      try {
-        this.#view.showLoading();
-
-        const { email, password } = this.#view.getFormData();
-        const response = await this.#model.login({ email, password });
-
-        if (response.error) {
-          this.#view.showError(response.message);
-        } else {
-          // Redirect to home page on successful login
-          this.#view.navigateTo("#/");
-        }
-      } catch (error) {
-        this.#view.showError("Terjadi kesalahan. Silakan coba lagi.");
-      } finally {
-        this.#view.hideLoading();
+      if (response.error) {
+        this.#view.showError(response.message);
+        return false;
+      } else {
+        // Redirect to home page on successful login
+        this.#view.navigateTo("#/");
+        return true;
       }
+    } catch (error) {
+      this.#view.showError("Terjadi kesalahan. Silakan coba lagi.");
+      return false;
+    } finally {
+      this.#view.hideLoading();
     }
   }
 }

@@ -74,6 +74,29 @@ export default class HomePage {
     });
   }
 
+  // Method baru untuk menampilkan stories di peta (dipindahkan dari presenter)
+  async showStoriesOnMap(stories) {
+    try {
+      await this.initializeMap();
+
+      stories.forEach((story) => {
+        if (story.lat && story.lon) {
+          const coordinate = [story.lat, story.lon];
+          const markerOptions = { alt: story.name };
+          const popupOptions = {
+            content: this.#createMapPopupTemplate(story),
+          };
+
+          this.addMapMarker(coordinate, markerOptions, popupOptions);
+        }
+      });
+    } catch (error) {
+      this.showMapError(error.message);
+    } finally {
+      this.hideMapLoading();
+    }
+  }
+
   showEmpty() {
     const storyListElement = document.getElementById("storyList");
     storyListElement.innerHTML = `
@@ -124,6 +147,7 @@ export default class HomePage {
     `;
   }
 
+  // Template untuk item cerita
   #createStoryItemTemplate(story) {
     let locationInfo = "";
 
@@ -152,6 +176,16 @@ export default class HomePage {
           <a href="#/story/${story.id}" class="story-link">Lihat Detail</a>
         </div>
       </article>
+    `;
+  }
+
+  // Template baru untuk popup peta (dipindahkan dari presenter)
+  #createMapPopupTemplate(story) {
+    return `
+      <div class="map-popup">
+        <h3>${story.name}</h3>
+        <a href="#/story/${story.id}">Lihat Detail</a>
+      </div>
     `;
   }
 }
