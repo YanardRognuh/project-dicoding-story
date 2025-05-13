@@ -36,10 +36,22 @@ class App {
 
   _createSkipLink() {
     const skipLink = document.createElement("a");
-    skipLink.setAttribute("href", "#main-content");
+    skipLink.setAttribute("href", "#");
     skipLink.setAttribute("class", "skip-link");
     skipLink.textContent = "Skip to content";
     document.body.insertBefore(skipLink, document.body.firstChild);
+
+    // Handle skip link click properly for SPA
+    skipLink.addEventListener("click", (event) => {
+      event.preventDefault(); // Prevent page refresh
+      skipLink.blur(); // Remove focus from skip link
+
+      const mainContent = document.querySelector("#main-content");
+      if (mainContent) {
+        mainContent.focus(); // Set focus to main content
+        mainContent.scrollIntoView(); // Scroll to main content
+      }
+    });
   }
 
   _updateNavigationByAuthStatus() {
