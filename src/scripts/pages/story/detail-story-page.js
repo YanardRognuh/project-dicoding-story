@@ -86,9 +86,6 @@ class DetailStoryPage {
   }
 
   async displayStoryMap(story) {
-    // Pastikan elemen map sudah ada di DOM
-    // Karena elemen map dibuat dalam populateStoryDetail,
-    // kita perlu sedikit delay untuk memastikan DOM sudah terupdate
     setTimeout(async () => {
       const mapElement = document.getElementById("storyMap");
       if (!mapElement) {

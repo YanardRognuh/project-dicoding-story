@@ -6,10 +6,23 @@ const ENDPOINTS = {
   GET_STORIES: `${CONFIG.BASE_URL}/stories`,
   ADD_STORY: `${CONFIG.BASE_URL}/stories`,
   GET_STORY_DETAIL: (id) => `${CONFIG.BASE_URL}/stories/${id}`,
+  SUBSCRIBE: `${CONFIG.BASE_URL}/notifications/subscribe`,
+  UNSUBSCRIBE: `${CONFIG.BASE_URL}/notifications/subscribe`,
 };
 
-function getToken() {
-  return localStorage.getItem(CONFIG.AUTH_KEY);
+export function getAccessToken() {
+  try {
+    const accessToken = localStorage.getItem(CONFIG.AUTH_KEY);
+
+    if (accessToken === "null" || accessToken === "undefined") {
+      return null;
+    }
+
+    return accessToken;
+  } catch (error) {
+    console.error("getAccessToken: error:", error);
+    return null;
+  }
 }
 
 async function fetchWithToken(url, options = {}) {
@@ -17,7 +30,7 @@ async function fetchWithToken(url, options = {}) {
     ...options,
     headers: {
       ...options.headers,
-      Authorization: `Bearer ${getToken()}`,
+      Authorization: `Bearer ${getAccessToken()}`,
     },
   });
 }
@@ -97,4 +110,50 @@ export async function addStory({ description, photo, lat, lon }) {
     console.error("Error in API addStory:", error);
     return { error: true, message: error.message || "Unknown error occurred" };
   }
+}
+
+export async function subscribePushNotification({
+  endpoint,
+  keys: { p256dh, auth },
+}) {
+  const accessToken = getAccessToken();
+  const data = JSON.stringify({
+    endpoint,
+    keys: { p256dh, auth },
+  });
+
+  const fetchResponse = await fetch(ENDPOINTS.SUBSCRIBE, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: data,
+  });
+  const json = await fetchResponse.json();
+
+  return {
+    ...json,
+    ok: fetchResponse.ok,
+  };
+}
+
+export async function unsubscribePushNotification({ endpoint }) {
+  const accessToken = getAccessToken();
+  const data = JSON.stringify({ endpoint });
+
+  const fetchResponse = await fetch(ENDPOINTS.UNSUBSCRIBE, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: data,
+  });
+  const json = await fetchResponse.json();
+
+  return {
+    ...json,
+    ok: fetchResponse.ok,
+  };
 }

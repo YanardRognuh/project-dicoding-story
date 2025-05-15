@@ -66,6 +66,9 @@ export default class AddStoryPresenter {
       } else {
         this.#view.navigateToHome();
       }
+
+      // No need to wait response
+      this.#notifyToAllUser(response.data.id);
     } catch (error) {
       this.#view.showError("Terjadi kesalahan saat mengirim cerita");
     } finally {
@@ -77,5 +80,21 @@ export default class AddStoryPresenter {
     this.#photoFile = null;
     this.#latitude = null;
     this.#longitude = null;
+  }
+
+  async #notifyToAllUser(storyId) {
+    try {
+      const response = await this.#model.sendStoryToAllUserViaNotification(
+        storyId
+      );
+      if (!response.ok) {
+        console.error("#notifyToAllUser: response:", response);
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error("#notifyToAllUser: error:", error);
+      return false;
+    }
   }
 }

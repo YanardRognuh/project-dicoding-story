@@ -10,6 +10,7 @@ import "leaflet/dist/leaflet.css";
 
 import App from "./pages/app";
 import Camera from "./utils/camera";
+import { registerServiceWorker } from "./utils/notification-helper";
 
 document.addEventListener("DOMContentLoaded", async () => {
   const app = new App({
@@ -19,6 +20,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   await app.renderPage();
+  await registerServiceWorker();
 
   window.addEventListener("hashchange", async () => {
     // Stop all camera streams before navigating
