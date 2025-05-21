@@ -49,37 +49,37 @@
   "screenshots": [
     {
       "src": "images/screenshots/DicodingStoryApp_001.jpg",
-      "sizes": "1920x1043",
+      "sizes": "1114x882",
       "type": "image/jpg",
       "form_factor": "wide"
     },
     {
       "src": "images/screenshots/DicodingStoryApp_002.jpg",
-      "sizes": "1920x1043",
+      "sizes": "1114x882",
       "type": "image/jpg",
       "form_factor": "wide"
     },
     {
       "src": "images/screenshots/DicodingStoryApp_003.jpg",
-      "sizes": "1920x1043",
+      "sizes": "1114x882",
       "type": "image/jpg",
       "form_factor": "wide"
     },
     {
       "src": "images/screenshots/DicodingStoryApp_004.jpg",
-      "sizes": "1080x2280",
+      "sizes": "339x633",
       "type": "image/jpg",
       "form_factor": "narrow"
     },
     {
       "src": "images/screenshots/DicodingStoryApp_005.jpg",
-      "sizes": "1080x2280",
+      "sizes": "339x633",
       "type": "image/jpg",
       "form_factor": "narrow"
     },
     {
       "src": "images/screenshots/DicodingStoryApp_006.jpg",
-      "sizes": "1080x2280",
+      "sizes": "339x633",
       "type": "image/jpg",
       "form_factor": "narrow"
     }

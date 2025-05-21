@@ -23,6 +23,7 @@ body {
 header {
   background-color: #0277bd;
   color: white;
+  z-index: 50000;
 }
 
 .main-header {
@@ -245,6 +246,7 @@ header {
     position: static;
     box-shadow: none;
     transform: translateX(0);
+    z-index: 50000;
   }
 
   .nav-list {
