@@ -17,7 +17,7 @@ export async function registerServiceWorker() {
 
   try {
     const registration = await navigator.serviceWorker.register(
-      "/sw.bundle.js"
+      "./sw.bundle.js"
     );
     console.log("Service worker telah terpasang", registration);
   } catch (error) {
@@ -59,8 +59,17 @@ export async function requestNotificationPermission() {
 }
 
 export async function getPushSubscription() {
-  const registration = await navigator.serviceWorker.getRegistration();
-  return await registration.pushManager.getSubscription();
+  try {
+    const registration = await navigator.serviceWorker.getRegistration();
+    if (!registration) {
+      console.error("Service worker not registered");
+      return null;
+    }
+    return await registration.pushManager.getSubscription();
+  } catch (error) {
+    console.error("Error getting push subscription:", error);
+    return null;
+  }
 }
 
 export async function isCurrentPushSubscriptionAvailable() {
