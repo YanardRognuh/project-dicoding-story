@@ -91,6 +91,7 @@ class App {
         }
         <li><a href="#/">Beranda</a></li>
         <li><a href="#/add">Tambah Cerita</a></li>
+        <li><a href="#/bookmark">Bookmark</a></li>
         <li><a href="#/logout" id="logout-button">Logout</a></li>
       `;
     } else {

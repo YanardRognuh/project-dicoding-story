@@ -1,13 +1,14 @@
-// pages/detail-story-page.js
 import StoryModel from "../../data/models/story-model";
 import { parseActivePathname } from "../../routes/url-parser";
 import { showFormattedDate } from "../../utils";
 import Map from "../../utils/map";
 import StoryPresenter from "../../presenters/detail-story-presenter";
+import Database from "../../data/database";
 
 class DetailStoryPage {
   constructor() {
     this._storyModel = new StoryModel();
+    this._database = Database;
     this._story = null;
     this._map = null;
     this._presenter = null;
@@ -37,6 +38,7 @@ class DetailStoryPage {
     this._presenter = new StoryPresenter(id, {
       view: this,
       storyModel: this._storyModel,
+      dbModel: this._database,
     });
 
     await this._presenter.showStoryDetail();
@@ -83,6 +85,28 @@ class DetailStoryPage {
 
     const storyDetailElement = document.getElementById("storyDetail");
     storyDetailElement.innerHTML = this._createStoryDetailTemplate(story);
+
+    // Add bookmark button event listeners after creating the template
+    this._presenter.showBookmarkButton();
+    this._setupBookmarkButtonEventListeners();
+  }
+
+  _setupBookmarkButtonEventListeners() {
+    const saveButton = document.getElementById("story-save-button");
+    if (saveButton) {
+      saveButton.addEventListener("click", async () => {
+        await this._presenter.saveStory();
+        await this._presenter.showBookmarkButton();
+      });
+    }
+
+    const removeButton = document.getElementById("story-remove-button");
+    if (removeButton) {
+      removeButton.addEventListener("click", async () => {
+        await this._presenter.removeStory();
+        await this._presenter.showBookmarkButton();
+      });
+    }
   }
 
   async displayStoryMap(story) {
@@ -190,7 +214,11 @@ class DetailStoryPage {
 
     return `
       <div class="story-detail-content">
-        <a href="#/" class="back-button">&larr; Kembali</a>
+        <div class="story-detail-header">
+          <a href="#/" class="back-button">&larr; Kembali</a>
+          <div id="bookmark-button-container" class="bookmark-button-container"></div>
+        </div>
+        
         <h1 class="story-detail-name">${story.name}</h1>
         <p class="story-detail-date">${showFormattedDate(story.createdAt)}</p>
         
@@ -205,6 +233,56 @@ class DetailStoryPage {
         ${mapSection}
       </div>
     `;
+  }
+
+  renderSaveButton() {
+    const bookmarkContainer = document.getElementById(
+      "bookmark-button-container"
+    );
+    if (bookmarkContainer) {
+      bookmarkContainer.innerHTML = `
+        <button id="story-save-button" class="bookmark-button save-button">
+          <i class="far fa-bookmark"></i> Simpan Cerita
+        </button>
+      `;
+      this._setupBookmarkButtonEventListeners();
+    }
+  }
+
+  renderRemoveButton() {
+    const bookmarkContainer = document.getElementById(
+      "bookmark-button-container"
+    );
+    if (bookmarkContainer) {
+      bookmarkContainer.innerHTML = `
+        <button id="story-remove-button" class="bookmark-button remove-button">
+          <i class="fas fa-bookmark"></i> Hapus dari Tersimpan
+        </button>
+      `;
+      this._setupBookmarkButtonEventListeners();
+    }
+  }
+
+  saveToBookmarkSuccessfully(message) {
+    console.log(message);
+    // Optional: Show a user-friendly notification
+    alert("Cerita berhasil disimpan");
+  }
+
+  saveToBookmarkFailed(message) {
+    console.error(message);
+    alert(message || "Gagal menyimpan cerita");
+  }
+
+  removeFromBookmarkSuccessfully(message) {
+    console.log(message);
+    // Optional: Show a user-friendly notification
+    alert("Cerita berhasil dihapus dari tersimpan");
+  }
+
+  removeFromBookmarkFailed(message) {
+    console.error(message);
+    alert(message || "Gagal menghapus cerita dari tersimpan");
   }
 }
 

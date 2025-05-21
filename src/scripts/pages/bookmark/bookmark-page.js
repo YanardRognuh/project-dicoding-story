@@ -1,10 +1,10 @@
-// pages/home/home-page.js
+// bookmark-page.js - Updated
 import StoryModel from "../../data/models/story-model.js";
 import { showFormattedDate } from "../../utils/index.js";
 import Map from "../../utils/map.js";
-import HomePresenter from "../../presenters/home-presenter.js";
+import BookmarkPresenter from "../../presenters/bookmark-presenter.js";
 
-export default class HomePage {
+export default class BookmarkPage {
   #storyModel;
   #map;
   #presenter;
@@ -12,7 +12,7 @@ export default class HomePage {
   constructor() {
     this.#storyModel = new StoryModel();
     this.#map = null;
-    this.#presenter = new HomePresenter({
+    this.#presenter = new BookmarkPresenter({
       model: this.#storyModel,
       view: this,
     });
@@ -21,7 +21,7 @@ export default class HomePage {
   async render() {
     return `
       <section class="container">
-        <h1>Cerita Dicoding</h1>
+        <h1 class="section-title">Daftar Cerita Tersimpan</h1>
         
         <div id="mapContainer" class="map-container">
           <div id="mapLoading" class="loading-indicator map-loading">
@@ -31,18 +31,16 @@ export default class HomePage {
         </div>
         
         <div id="loading" class="loading-indicator">
-          <p>Memuat cerita...</p>
+          <p>Memuat cerita tersimpan...</p>
         </div>
         
         <div id="storyList" class="story-list"></div>
-        
-        <a href="#/add" class="add-button" aria-label="Tambah cerita baru">+</a>
       </section>
     `;
   }
 
   async afterRender() {
-    await this.#presenter.showStories();
+    await this.#presenter.showBookmarkedStories();
   }
 
   async initializeMap() {
@@ -99,7 +97,7 @@ export default class HomePage {
   showEmpty() {
     const storyListElement = document.getElementById("storyList");
     storyListElement.innerHTML = `
-      <div class="empty-message">Belum ada cerita yang ditambahkan.</div>
+      <div class="empty-message">Belum ada cerita tersimpan.</div>
     `;
   }
 
@@ -135,7 +133,7 @@ export default class HomePage {
     const storyListElement = document.getElementById("storyList");
     storyListElement.innerHTML = `
       <div class="error-message">${
-        message || "Terjadi kesalahan saat memuat cerita"
+        message || "Terjadi kesalahan saat memuat cerita tersimpan"
       }</div>
     `;
   }
@@ -178,7 +176,7 @@ export default class HomePage {
     `;
   }
 
-  // Template baru untuk popup peta (dipindahkan dari presenter)
+  // Template untuk popup peta
   #createMapPopupTemplate(story) {
     return `
       <div class="map-popup">

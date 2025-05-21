@@ -1,8 +1,10 @@
 import { getStories, getStoryById, addStory } from "../api";
+import Database from "../database.js";
 
 class StoryModel {
   constructor() {
     this._stories = [];
+    this._database = Database;
   }
 
   async getStories() {
@@ -53,6 +55,44 @@ class StoryModel {
 
   getAll() {
     return this._stories;
+  }
+
+  // Add methods to work with the Database for bookmarked stories
+  async getAllBookmarkedStories() {
+    try {
+      return await this._database.getAllStories();
+    } catch (error) {
+      console.error("getAllBookmarkedStories error:", error);
+      return [];
+    }
+  }
+
+  async bookmarkStory(story) {
+    try {
+      return await this._database.putStories(story);
+    } catch (error) {
+      console.error("bookmarkStory error:", error);
+      throw error;
+    }
+  }
+
+  async isStoryBookmarked(id) {
+    try {
+      const story = await this._database.getStoriesById(id);
+      return !!story;
+    } catch (error) {
+      console.error("isStoryBookmarked error:", error);
+      return false;
+    }
+  }
+
+  async deleteBookmarkedStory(id) {
+    try {
+      return await this._database.removeStories(id);
+    } catch (error) {
+      console.error("deleteBookmarkedStory error:", error);
+      throw error;
+    }
   }
 }
 
